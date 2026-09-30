@@ -21,7 +21,13 @@ class Grade {
   final String subject;
   final int value; // 2..5
   final DateTime date;
-  const Grade({required this.subject, required this.value, required this.date});
+  final String term; // 'I четверть' | 'II четверть'
+  const Grade({
+    required this.subject,
+    required this.value,
+    required this.date,
+    this.term = 'I четверть',
+  });
 }
 
 class Lesson {
@@ -30,25 +36,27 @@ class Lesson {
   final String time; // "08:00–08:45"
   final String room;
   final String teacher;
+  final String? homework;
   const Lesson({
     required this.order,
     required this.subject,
     required this.time,
     required this.room,
     required this.teacher,
+    this.homework,
   });
 }
 
 class Homework {
+  final String id;
   final String subject;
   final String task;
   final DateTime dueDate;
-  final bool done;
   const Homework({
+    required this.id,
     required this.subject,
     required this.task,
     required this.dueDate,
-    this.done = false,
   });
 }
 
@@ -57,12 +65,10 @@ class AppNotification {
   final String title;
   final String body;
   final DateTime createdAt;
-  final bool read;
   const AppNotification({
     required this.id,
     required this.title,
     required this.body,
     required this.createdAt,
-    this.read = false,
   });
 }

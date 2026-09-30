@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
-import '../widgets/ui_kit.dart';
+import '../widgets/glass_kit.dart';
 
-// ---------- ГЛАВНАЯ (дашборд) ----------
+// ---------- ГЛАВНАЯ ----------
 class DashboardScreen extends StatelessWidget {
   final void Function(int) onNavigate;
   const DashboardScreen({super.key, required this.onNavigate});
@@ -17,16 +18,36 @@ class DashboardScreen extends StatelessWidget {
     return 'Добрый вечер';
   }
 
+  IconData _insightIcon(String key) {
+    switch (key) {
+      case 'trend_up':
+        return Icons.trending_up;
+      case 'trend_down':
+        return Icons.trending_down;
+      case 'star':
+        return Icons.star_outline;
+      case 'focus':
+        return Icons.center_focus_strong_outlined;
+      default:
+        return Icons.event_available_outlined;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     final child = state.selectedChild;
     final recent = state.filteredGrades.take(3).toList();
     final today = state.todayLessons;
+    final live = state.currentLesson;
+    final trend = state.weeklyTrend.where((v) => v > 0).toList();
+    final events = state.upcomingEvents.take(2).toList();
+    final att = state.attendance.take(7).toList().reversed.toList();
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        RoundedCard(
+        // Приветствие + средний балл
+        GlassCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -38,60 +59,184 @@ class DashboardScreen extends StatelessWidget {
                       .bodyMedium
                       ?.copyWith(color: Theme.of(context).hintColor)),
               const SizedBox(height: 12),
-              AverageProgress(average: state.average),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
+              Row(
                 children: [
-                  Chip(label: Text('«5»: ${state.countGrade(5)}')),
-                  Chip(label: Text('«4»: ${state.countGrade(4)}')),
-                  Chip(label: Text('«3»: ${state.countGrade(3)}')),
-                  Chip(label: Text('«2»: ${state.countGrade(2)}')),
+                  GlassRing(
+                      progress: (state.average - 2) / 3,
+                      center: state.average.toStringAsFixed(2)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Средний балл'),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (var v = 5; v >= 2; v--)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text('«$v»: ${state.countGrade(v)}',
+                                    style: const TextStyle(fontSize: 12)),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
         ),
+        // Live-урок
+        if (live != null) ...[
+          const SizedBox(height: 12),
+          GlassCard(
+            onTap: () => onNavigate(2),
+            child: Row(
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                      color: Colors.green, shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Сейчас идёт урок',
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w600)),
+                      Text('${live.subject} • ${live.time}',
+                          style: Theme.of(context).textTheme.titleMedium),
+                    ],
+                  ),
+                ),
+                Text('каб. ${live.room}'),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 12),
         SectionTitle(
-          title: 'Сегодня (${AppState.todayDayName}): ${today.length} ур.',
-          actionLabel: 'Расписание',
-          onAction: () => onNavigate(2),
-        ),
+            title: 'Сегодня (${AppState.todayDayName})',
+            actionLabel: 'Расписание',
+            onAction: () => onNavigate(2)),
         if (today.isEmpty)
           const EmptyState(text: 'Сегодня уроков нет')
         else
-          for (final l in today.take(3))
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: RoundedCard(
-                onTap: () => onNavigate(2),
-                child: Row(
-                  children: [
-                    CircleAvatar(child: Text('${l.order}')),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(l.subject,
-                              style:
-                                  Theme.of(context).textTheme.titleMedium),
-                          Text('${l.time} • ${l.room}'),
-                        ],
-                      ),
+          GlassCard(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              children: [
+                for (final l in today)
+                  ListTile(
+                    dense: true,
+                    leading: CircleAvatar(
+                        radius: 18, child: Text('${l.order}')),
+                    title: Text(l.subject),
+                    trailing: Text(l.time,
+                        style: TextStyle(
+                            color: Theme.of(context).hintColor,
+                            fontSize: 12)),
+                    onTap: () => onNavigate(2),
+                  ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 12),
+        SectionTitle(
+            title: 'Умная сводка',
+            actionLabel: 'Оценки',
+            onAction: () => onNavigate(1)),
+        for (final ins in state.insights)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: GlassCard(
+              child: Row(
+                children: [
+                  Icon(_insightIcon(ins.icon),
+                      color: ins.good
+                          ? Colors.green
+                          : Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(ins.title,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700)),
+                        Text(ins.text,
+                            style: Theme.of(context).textTheme.bodyMedium),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-        const SizedBox(height: 4),
+          ),
+        if (trend.length >= 2) ...[
+          const SizedBox(height: 4),
+          GlassCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Динамика балла по неделям',
+                    style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                TrendChart(
+                    points: trend,
+                    labels: const ['1 сен', '2 сен', '3 сен', '4 сен']),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
         SectionTitle(
-          title: 'Домашка: осталось ${state.pendingHomework}',
-          actionLabel: 'Открыть',
-          onAction: () => onNavigate(3),
+            title: 'Посещаемость: ${state.attendancePercent.toStringAsFixed(0)}%',
+            actionLabel: 'Вся лента',
+            onAction: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const AttendanceScreen()))),
+        GlassCard(
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const AttendanceScreen())),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              for (final r in att)
+                Column(
+                  children: [
+                    Icon(attendanceIcon(r.status),
+                        color: attendanceColor(r.status, context),
+                        size: 26),
+                    const SizedBox(height: 4),
+                    Text('${r.date.day}.${r.date.month}',
+                        style: const TextStyle(fontSize: 11)),
+                  ],
+                ),
+            ],
+          ),
         ),
-        RoundedCard(
+        const SizedBox(height: 12),
+        SectionTitle(
+            title: 'Домашка: осталось ${state.pendingHomework}',
+            actionLabel: 'Открыть',
+            onAction: () => onNavigate(3)),
+        GlassCard(
           onTap: () => onNavigate(3),
           child: Row(
             children: [
@@ -112,28 +257,63 @@ class DashboardScreen extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         SectionTitle(
-          title: 'Последние оценки',
-          actionLabel: 'Все оценки',
-          onAction: () => onNavigate(1),
-        ),
+            title: 'Ближайшие события',
+            actionLabel: 'Все',
+            onAction: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const EventsScreen()))),
+        if (events.isEmpty)
+          const EmptyState(text: 'Событий нет')
+        else
+          for (final e in events)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: GlassCard(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const EventsScreen())),
+                child: Row(
+                  children: [
+                    CircleAvatar(child: Text('${e.date.day}')),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(e.title,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium),
+                          Text(
+                              '${DateFormat('d MMM HH:mm', 'ru').format(e.date)} • ${e.place}',
+                              style: TextStyle(
+                                  color: Theme.of(context).hintColor)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        const SizedBox(height: 12),
+        SectionTitle(
+            title: 'Последние оценки',
+            actionLabel: 'Все оценки',
+            onAction: () => onNavigate(1)),
         if (recent.isEmpty)
           const EmptyState(text: 'Оценок пока нет')
         else
           for (final g in recent)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: RoundedCard(
+              child: GlassCard(
                 onTap: () => onNavigate(1),
                 child: Row(
                   children: [
-                    GradeBadge(value: g.value, size: 40),
+                    GlassGradeBadge(value: g.value, size: 42),
                     const SizedBox(width: 12),
                     Expanded(child: Text(g.subject)),
-                    Text(
-                      DateFormat('d MMM', 'ru').format(g.date),
-                      style:
-                          TextStyle(color: Theme.of(context).hintColor),
-                    ),
+                    Text(DateFormat('d MMM', 'ru').format(g.date),
+                        style: TextStyle(
+                            color: Theme.of(context).hintColor)),
                   ],
                 ),
               ),
@@ -152,20 +332,102 @@ class GradesScreen extends StatelessWidget {
     final state = context.watch<AppState>();
     final grades = state.filteredGrades;
     const terms = ['Все', 'I четверть', 'II четверть'];
+    const goals = [0.0, 4.0, 4.5, 5.0];
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        RoundedCard(child: AverageProgress(average: state.average)),
+        GlassCard(
+          child: Row(
+            children: [
+              GlassRing(
+                  progress: (state.average - 2) / 3,
+                  center: state.average.toStringAsFixed(2)),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Средний балл',
+                        style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                        '«5»: ${state.countGrade(5)}  «4»: ${state.countGrade(4)}  «3»: ${state.countGrade(3)}  «2»: ${state.countGrade(2)}'),
+                    TextButton.icon(
+                      onPressed: () async {
+                        await Clipboard.setData(ClipboardData(
+                            text: state.shareReport()));
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'Табель скопирован — можно отправить')));
+                        }
+                      },
+                      icon: const Icon(Icons.share_outlined, size: 18),
+                      label: const Text('Поделиться табелем'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: 12),
-        RoundedCard(
+        GlassCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Цель по баллу',
+                      style: Theme.of(context).textTheme.titleMedium),
+                  if (state.goal > 0)
+                    Text(state.average >= state.goal ? '🏆' : '🎯',
+                        style: const TextStyle(fontSize: 20)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  for (final g in goals)
+                    ChoiceChip(
+                      label: Text(g == 0 ? 'Нет' : g.toStringAsFixed(1)),
+                      selected: state.goal == g,
+                      onSelected: (_) => state.setGoal(g),
+                    ),
+                ],
+              ),
+              if (state.goal > 0) ...[
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value:
+                        ((state.average - 2) / (state.goal - 2)).clamp(0.0, 1.0),
+                    minHeight: 10,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  state.average >= state.goal
+                      ? 'Цель достигнута! Поставьте новую.'
+                      : 'До цели осталось ${(state.goal - state.average).toStringAsFixed(2)}',
+                  style: TextStyle(color: Theme.of(context).hintColor),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        GlassCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Среднее по предметам',
                   style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 4),
               for (final s in state.subjects)
-                SubjectBar(
+                _SubjectBar(
                     subject: s, average: state.subjectAverage(s)),
             ],
           ),
@@ -215,10 +477,10 @@ class GradesScreen extends StatelessWidget {
           for (final g in grades)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: RoundedCard(
+              child: GlassCard(
                 child: Row(
                   children: [
-                    GradeBadge(value: g.value),
+                    GlassGradeBadge(value: g.value),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(
@@ -245,6 +507,45 @@ class GradesScreen extends StatelessWidget {
               ),
             ),
       ],
+    );
+  }
+}
+
+class _SubjectBar extends StatelessWidget {
+  final String subject;
+  final double average;
+  const _SubjectBar({required this.subject, required this.average});
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = ((average - 2) / 3).clamp(0.0, 1.0);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: Text(subject)),
+              Text(average.toStringAsFixed(1),
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: Theme.of(context)
+                  .colorScheme
+                  .primary
+                  .withValues(alpha: 0.12),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -285,7 +586,7 @@ class ScheduleScreen extends StatelessWidget {
           for (final l in lessons)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: RoundedCard(
+              child: GlassCard(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -313,8 +614,8 @@ class ScheduleScreen extends StatelessWidget {
                                 color: Theme.of(context)
                                     .colorScheme
                                     .primary
-                                    .withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(10),
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(
                                 children: [
@@ -351,7 +652,7 @@ class HomeworkScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        RoundedCard(
+        GlassCard(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -381,7 +682,7 @@ class HomeworkScreen extends StatelessWidget {
           for (final h in list)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: RoundedCard(
+              child: GlassCard(
                 child: Row(
                   children: [
                     Checkbox(
@@ -419,6 +720,158 @@ class HomeworkScreen extends StatelessWidget {
   }
 }
 
+// ---------- ПОСЕЩАЕМОСТЬ (родитель) ----------
+class AttendanceScreen extends StatelessWidget {
+  const AttendanceScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<AppState>();
+    final list = state.attendance;
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(title: const Text('Посещаемость')),
+      body: GlassBackground(
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              GlassCard(
+                child: Row(
+                  children: [
+                    GlassRing(
+                        progress: state.attendancePercent / 100,
+                        center:
+                            '${state.attendancePercent.toStringAsFixed(0)}%'),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Присутствие',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium),
+                          Text(
+                              '20 учебных дней • пропусков: ${state.absenceCount}'),
+                          Text(
+                              '${state.selectedChild.fullName} • ${state.selectedChild.schoolClass}',
+                              style: TextStyle(
+                                  color: Theme.of(context).hintColor)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              for (final r in list)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: GlassCard(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        Icon(attendanceIcon(r.status),
+                            color:
+                                attendanceColor(r.status, context)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                              DateFormat('EEEE, d MMM', 'ru')
+                                  .format(r.date),
+                              style: const TextStyle(fontSize: 15)),
+                        ),
+                        Text(attendanceLabel(r.status),
+                            style: TextStyle(
+                                color: attendanceColor(r.status, context),
+                                fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------- СОБЫТИЯ ----------
+class EventsScreen extends StatelessWidget {
+  const EventsScreen({super.key});
+
+  IconData _kindIcon(String kind) {
+    switch (kind) {
+      case 'meeting':
+        return Icons.groups_outlined;
+      case 'exam':
+        return Icons.quiz_outlined;
+      case 'holiday':
+        return Icons.beach_access_outlined;
+      case 'sport':
+        return Icons.sports_soccer_outlined;
+      default:
+        return Icons.event_outlined;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<AppState>();
+    final list = state.upcomingEvents;
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(title: const Text('События школы')),
+      body: GlassBackground(
+        child: SafeArea(
+          child: list.isEmpty
+              ? const EmptyState(text: 'Событий нет')
+              : ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    for (final e in list)
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: 10),
+                        child: GlassCard(
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                  radius: 24,
+                                  child: Icon(_kindIcon(e.kind))),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(e.title,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium),
+                                    Text(
+                                        '${DateFormat('d MMM HH:mm', 'ru').format(e.date)} • ${e.place}',
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .hintColor)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}
+
 // ---------- УВЕДОМЛЕНИЯ ----------
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -428,6 +881,7 @@ class NotificationsScreen extends StatelessWidget {
     final state = context.watch<AppState>();
     final list = state.notifications;
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Уведомления'),
         actions: [
@@ -438,70 +892,106 @@ class NotificationsScreen extends StatelessWidget {
             ),
         ],
       ),
-      body: list.isEmpty
-          ? const EmptyState(text: 'Уведомлений нет')
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                for (final n in list)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: RoundedCard(
-                      onTap: () => state.toggleRead(n),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            state.isRead(n)
-                                ? Icons.notifications_none
-                                : Icons.notifications_active,
-                            color: state.isRead(n)
-                                ? Theme.of(context).hintColor
-                                : Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  n.title,
-                                  style: TextStyle(
-                                    fontWeight: state.isRead(n)
-                                        ? FontWeight.normal
-                                        : FontWeight.w700,
-                                    fontSize: 16,
+      body: GlassBackground(
+        child: SafeArea(
+          child: list.isEmpty
+              ? const EmptyState(text: 'Уведомлений нет')
+              : ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    for (final n in list)
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: 10),
+                        child: GlassCard(
+                          onTap: () => state.toggleRead(n),
+                          child: Row(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                state.isRead(n)
+                                    ? Icons.notifications_none
+                                    : (n.smart
+                                        ? Icons.auto_awesome
+                                        : Icons.notifications_active),
+                                color: state.isRead(n)
+                                    ? Theme.of(context).hintColor
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            n.title,
+                                            style: TextStyle(
+                                              fontWeight:
+                                                  state.isRead(n)
+                                                      ? FontWeight.normal
+                                                      : FontWeight.w700,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ),
+                                        if (n.smart)
+                                          Container(
+                                            padding:
+                                                const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withValues(alpha: 0.12),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      8),
+                                            ),
+                                            child: const Text('умное',
+                                                style: TextStyle(
+                                                    fontSize: 11)),
+                                          ),
+                                      ],
+                                    ),
+                                    Text(n.body),
+                                    Text(
+                                      DateFormat('d MMM HH:mm', 'ru')
+                                          .format(n.createdAt),
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .hintColor),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (!state.isRead(n))
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                                    shape: BoxShape.circle,
                                   ),
                                 ),
-                                Text(n.body),
-                                Text(
-                                  DateFormat('d MMM HH:mm', 'ru')
-                                      .format(n.createdAt),
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .hintColor),
-                                ),
-                              ],
-                            ),
+                            ],
                           ),
-                          if (!state.isRead(n))
-                            Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .primary,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-              ],
-            ),
+                  ],
+                ),
+        ),
+      ),
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Цветовая индикация оценок по ТЗ:
+// Цветовая индикация оценок:
 // 5 — зелёная, 4 — синяя, 3 — оранжевая, 2 — красная.
 Color gradeColor(int value, Brightness brightness) {
   final dark = brightness == Brightness.dark;
@@ -16,77 +16,73 @@ Color gradeColor(int value, Brightness brightness) {
   }
 }
 
+// Liquid Glass тема: полупрозрачные панели поверх градиентного фона.
 class AppTheme {
-  static const _radius = 18.0;
+  static const double radius = 24.0;
 
   static ThemeData light() {
     final scheme = ColorScheme.fromSeed(
       seedColor: const Color(0xFF2563EB),
       brightness: Brightness.light,
     );
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: scheme,
-      scaffoldBackgroundColor: const Color(0xFFF6F7FB),
-      cardTheme: CardThemeData(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_radius),
-        ),
-        color: Colors.white,
-      ),
-      textTheme: const TextTheme(
-        // крупный читабельный шрифт
-        titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-        titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        bodyLarge: TextStyle(fontSize: 16),
-        bodyMedium: TextStyle(fontSize: 15),
-      ),
-      appBarTheme: const AppBarTheme(
-        elevation: 0,
-        centerTitle: false,
-        backgroundColor: Color(0xFFF6F7FB),
-        foregroundColor: Color(0xFF0F172A),
-      ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        selectedItemColor: Color(0xFF2563EB),
-        unselectedItemColor: Color(0xFF94A3B8),
-      ),
-    );
+    return _base(scheme, false);
   }
 
   static ThemeData dark() {
     final scheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF2563EB),
+      seedColor: const Color(0xFF7BA7FF),
       brightness: Brightness.dark,
     );
+    return _base(scheme, true);
+  }
+
+  static ThemeData _base(ColorScheme scheme, bool dark) {
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor: const Color(0xFF0B1220),
-      cardTheme: CardThemeData(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_radius),
-        ),
-        color: const Color(0xFF151E32),
-      ),
-      textTheme: const TextTheme(
-        titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-        titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        bodyLarge: TextStyle(fontSize: 16),
-        bodyMedium: TextStyle(fontSize: 15),
-      ),
-      appBarTheme: const AppBarTheme(
+      scaffoldBackgroundColor: Colors.transparent,
+      appBarTheme: AppBarTheme(
         elevation: 0,
         centerTitle: false,
-        backgroundColor: Color(0xFF0B1220),
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        foregroundColor: dark ? Colors.white : const Color(0xFF0F172A),
+        titleTextStyle: TextStyle(
+          fontSize: 26,
+          fontWeight: FontWeight.w800,
+          color: dark ? Colors.white : const Color(0xFF0F172A),
+        ),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        selectedItemColor: Color(0xFF60A5FA),
-        unselectedItemColor: Color(0xFF64748B),
+      textTheme: const TextTheme(
+        titleLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+        titleMedium: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+        bodyLarge: TextStyle(fontSize: 16),
+        bodyMedium: TextStyle(fontSize: 14.5),
+      ),
+      chipTheme: ChipThemeData(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        selectedItemColor: scheme.primary,
+        unselectedItemColor:
+            dark ? const Color(0xFF8B93B0) : const Color(0xFF94A3B8),
       ),
     );
+  }
+
+  /// Стеклянная заливка карточки под текущую тему.
+  static Color glassFill(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return dark
+        ? Colors.white.withValues(alpha: 0.09)
+        : Colors.white.withValues(alpha: 0.60);
+  }
+
+  /// Стеклянная рамка карточки.
+  static Color glassBorder(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return dark
+        ? Colors.white.withValues(alpha: 0.16)
+        : Colors.white.withValues(alpha: 0.75);
   }
 }

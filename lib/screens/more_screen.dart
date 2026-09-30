@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/models.dart';
 import '../providers/app_state.dart';
-import '../widgets/ui_kit.dart';
+import '../widgets/glass_kit.dart';
 import 'tabs.dart';
 
-// Вкладка «Ещё»: дети, уведомления, оформление, о приложении, выход.
+// Вкладка «Ещё»: роль, дети, уведомления, оформление, аккаунт.
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
 
@@ -14,57 +15,92 @@ class MoreScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const SectionTitle(title: 'Мои дети'),
+        const SectionTitle(title: 'Роль'),
         const SizedBox(height: 8),
-        RadioGroup<String>(
-          groupValue: state.selectedChild.id,
-          onChanged: (v) =>
-              v != null ? state.selectChild(v) : null,
+        GlassCard(
+          padding: EdgeInsets.zero,
           child: Column(
             children: [
-              for (final c in state.children)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: RoundedCard(
-                    onTap: () => state.selectChild(c.id),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 24,
-                          child: Text(c.firstName[0],
-                              style:
-                                  const TextStyle(fontSize: 20)),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                            children: [
-                              Text(c.fullName,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium),
-                              Text(
-                                  '${c.schoolClass} • ${c.schoolName}',
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .hintColor)),
-                            ],
-                          ),
-                        ),
-                        Radio<String>(value: c.id),
-                      ],
+              RadioGroup<UserRole>(
+                groupValue: state.role,
+                onChanged: (v) =>
+                    v != null ? state.switchRole(v) : null,
+                child: const Column(
+                  children: [
+                    RadioListTile<UserRole>(
+                      value: UserRole.parent,
+                      title: Text('Родитель'),
+                      subtitle: Text('Дети, оценки, домашка'),
+                      secondary:
+                          Icon(Icons.family_restroom_outlined),
                     ),
-                  ),
+                    RadioListTile<UserRole>(
+                      value: UserRole.teacher,
+                      title: Text('Учитель'),
+                      subtitle:
+                          Text('Классы, журнал, посещаемость'),
+                      secondary:
+                          Icon(Icons.menu_book_outlined),
+                    ),
+                  ],
                 ),
+              ),
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        if (!state.isTeacher) ...[
+          const SizedBox(height: 12),
+          const SectionTitle(title: 'Мои дети'),
+          const SizedBox(height: 8),
+          RadioGroup<String>(
+            groupValue: state.selectedChild.id,
+            onChanged: (v) =>
+                v != null ? state.selectChild(v) : null,
+            child: Column(
+              children: [
+                for (final c in state.children)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: GlassCard(
+                      onTap: () => state.selectChild(c.id),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 24,
+                            child: Text(c.firstName[0],
+                                style: const TextStyle(fontSize: 20)),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(c.fullName,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium),
+                                Text(
+                                    '${c.schoolClass} • ${c.schoolName}',
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .hintColor)),
+                              ],
+                            ),
+                          ),
+                          Radio<String>(value: c.id),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 4),
         const SectionTitle(title: 'Сервис'),
         const SizedBox(height: 8),
-        RoundedCard(
+        GlassCard(
           padding: EdgeInsets.zero,
           child: Column(
             children: [
@@ -96,18 +132,19 @@ class MoreScreen extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         const SectionTitle(title: 'Аккаунт'),
         const SizedBox(height: 8),
-        RoundedCard(
+        GlassCard(
           padding: EdgeInsets.zero,
           child: Column(
             children: [
               ListTile(
                 leading: const Icon(Icons.person_outline),
                 title: Text(state.parentName),
-                subtitle: Text(
-                    'Детей в аккаунте: ${state.children.length}'),
+                subtitle: Text(state.isTeacher
+                    ? 'Роль: учитель'
+                    : 'Детей в аккаунте: ${state.children.length}'),
               ),
               const Divider(height: 1),
               ListTile(
@@ -116,9 +153,9 @@ class MoreScreen extends StatelessWidget {
                 onTap: () => showDialog(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: const Text('E-Ruznoma 0.1.0'),
+                    title: const Text('E-Ruznoma 0.2.0'),
                     content: const Text(
-                        'Электронный дневник с интеграцией ИСУО (EMIS) Таджикистана.\n\nДемо-режим: все данные вымышлены и хранятся только на устройстве.'),
+                        'Электронный дневник с интеграцией ИСУО (EMIS) Таджикистана.\n\nРоли: родитель и учитель. Посещаемость, умные уведомления, цели, журнал класса.\n\nДемо-режим: все данные вымышлены и хранятся только на устройстве.'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),

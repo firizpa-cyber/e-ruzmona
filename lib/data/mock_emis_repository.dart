@@ -163,6 +163,106 @@ class MockEmisRepository {
     ];
   }
 
+  // --- Посещаемость: детерминированный mock за последние 20 учебных дней ---
+  List<AttendanceRecord> getAttendance(String childId) {
+    final out = <AttendanceRecord>[];
+    var d = DateTime(2026, 9, 30);
+    var added = 0;
+    final seed = childId == 'c2' ? 7 : 3;
+    while (added < 20) {
+      if (d.weekday >= 1 && d.weekday <= 5) {
+        final h = (d.day * 7 + d.month * 13 + seed) % 20;
+        final status = h == 0
+            ? 'absent'
+            : h == 1
+                ? 'late'
+                : h == 2
+                    ? 'sick'
+                    : 'present';
+        out.add(AttendanceRecord(
+            childId: childId, date: d, status: status));
+        added++;
+      }
+      d = d.subtract(const Duration(days: 1));
+    }
+    return out;
+  }
+
+  // --- События школы ---
+  List<SchoolEvent> getEvents() => [
+        SchoolEvent(
+            id: 'e1',
+            title: 'Родительское собрание',
+            place: 'Каб. 204',
+            date: DateTime(2026, 10, 2, 18, 0),
+            kind: 'meeting'),
+        SchoolEvent(
+            id: 'e2',
+            title: 'Контрольная по алгебре (7 «А»)',
+            place: 'Каб. 204',
+            date: DateTime(2026, 10, 3, 8, 0),
+            kind: 'exam'),
+        SchoolEvent(
+            id: 'e3',
+            title: 'Осенние каникулы',
+            place: 'Вся школа',
+            date: DateTime(2026, 10, 27),
+            kind: 'holiday'),
+        SchoolEvent(
+            id: 'e4',
+            title: 'Олимпиада по математике',
+            place: 'Актовый зал',
+            date: DateTime(2026, 10, 10, 10, 0),
+            kind: 'other'),
+        SchoolEvent(
+            id: 'e5',
+            title: 'Футбол: 7 «А» — 7 «Б»',
+            place: 'Стадион',
+            date: DateTime(2026, 10, 8, 15, 0),
+            kind: 'sport'),
+      ];
+
+  // --- Классы учителя (роль «Учитель») ---
+  List<TeacherClass> getTeacherClasses() => const [
+        TeacherClass(
+          id: 't7a',
+          name: '7 «А»',
+          subject: 'Алгебра',
+          students: [
+            Student(id: 's01', firstName: 'Амина', lastName: 'Юсупова', childId: 'c1'),
+            Student(id: 's02', firstName: 'Далер', lastName: 'Каримов'),
+            Student(id: 's03', firstName: 'Малика', lastName: 'Назарова'),
+            Student(id: 's04', firstName: 'Фирдавс', lastName: 'Алиев'),
+            Student(id: 's05', firstName: 'Ноза', lastName: 'Шарипова'),
+            Student(id: 's06', firstName: 'Умед', lastName: 'Холов'),
+            Student(id: 's07', firstName: 'Сабина', lastName: 'Мирзоева'),
+            Student(id: 's08', firstName: 'Шахром', lastName: 'Рахимов'),
+            Student(id: 's09', firstName: 'Диана', lastName: 'Собирова'),
+            Student(id: 's10', firstName: 'Азиз', lastName: 'Турсунов'),
+          ],
+        ),
+        TeacherClass(
+          id: 't4b',
+          name: '4 «Б»',
+          subject: 'Математика',
+          students: [
+            Student(id: 's21', firstName: 'Омар', lastName: 'Юсупов', childId: 'c2'),
+            Student(id: 's22', firstName: 'Ясмина', lastName: 'Ахмедова'),
+            Student(id: 's23', firstName: 'Тимур', lastName: 'Гафуров'),
+            Student(id: 's24', firstName: 'Аиша', lastName: 'Каримова'),
+            Student(id: 's25', firstName: 'Сардор', lastName: 'Набиев'),
+            Student(id: 's26', firstName: 'Заррина', lastName: 'Юсупова'),
+            Student(id: 's27', firstName: 'Камрон', lastName: 'Шарипов'),
+            Student(id: 's28', firstName: 'Мадина', lastName: 'Холова'),
+          ],
+        ),
+      ];
+
+  // --- Звонки (для live-индикатора «сейчас идёт урок») ---
+  List<String> getBells() => const [
+        '08:00', '08:45', '08:55', '09:40', '09:55', '10:40', '10:55', '11:40',
+      ];
+
   List<AppNotification> getNotifications(String childId) {
     final name = childId == 'c2' ? 'Омара' : 'Амины';
     final controlWork = childId == 'c2'

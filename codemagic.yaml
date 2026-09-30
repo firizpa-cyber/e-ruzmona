@@ -1,0 +1,28 @@
+workflows:
+  ios-testflight:
+    name: iOS TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get packages
+        script: flutter pub get
+      - name: Ensure iOS platform
+        script: |
+          if [ ! -d "ios" ]; then
+            flutter create --platforms=ios,web .
+          fi
+      - name: Flutter analyze
+        script: flutter analyze || true
+        ignore_failure: true
+      - name: Build IPA
+        script: flutter build ipa --release --export-options-plist=$CM_EXPORT_OPTIONS_PLIST
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

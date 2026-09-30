@@ -141,19 +141,19 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               if (!teacher)
                 const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  child: ChildSwitcherHeader(),
+                  padding: EdgeInsets.fromLTRB(12, 4, 12, 0),
+                  child: CompactChildBar(),
                 ),
               Expanded(
                 child: IndexedStack(index: _index, children: pages),
               ),
-              const SizedBox(height: 96),
+              const SizedBox(height: 84),
             ],
           ),
         ),
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
         child: GlassCard(
           padding:
               const EdgeInsets.symmetric(horizontal: 6, vertical: 6),

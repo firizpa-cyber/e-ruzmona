@@ -47,7 +47,7 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         foregroundColor: dark ? Colors.white : const Color(0xFF0F172A),
         titleTextStyle: TextStyle(
-          fontSize: 26,
+          fontSize: 21,
           fontWeight: FontWeight.w800,
           color: dark ? Colors.white : const Color(0xFF0F172A),
         ),

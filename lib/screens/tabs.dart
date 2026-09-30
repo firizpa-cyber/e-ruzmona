@@ -44,10 +44,10 @@ class DashboardScreen extends StatelessWidget {
     final events = state.upcomingEvents.take(2).toList();
     final att = state.attendance.take(7).toList().reversed.toList();
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       children: [
         // Приветствие + средний балл
-        GlassCard(
+        SolidCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -102,7 +102,7 @@ class DashboardScreen extends StatelessWidget {
         // Live-урок
         if (live != null) ...[
           const SizedBox(height: 12),
-          GlassCard(
+          SolidCard(
             onTap: () => onNavigate(2),
             child: Row(
               children: [
@@ -138,7 +138,7 @@ class DashboardScreen extends StatelessWidget {
         if (today.isEmpty)
           const EmptyState(text: 'Сегодня уроков нет')
         else
-          GlassCard(
+          SolidCard(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Column(
               children: [
@@ -165,7 +165,7 @@ class DashboardScreen extends StatelessWidget {
         for (final ins in state.insights)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: GlassCard(
+            child: SolidCard(
               child: Row(
                 children: [
                   Icon(_insightIcon(ins.icon),
@@ -191,7 +191,7 @@ class DashboardScreen extends StatelessWidget {
           ),
         if (trend.length >= 2) ...[
           const SizedBox(height: 4),
-          GlassCard(
+          SolidCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -211,7 +211,7 @@ class DashboardScreen extends StatelessWidget {
             actionLabel: 'Вся лента',
             onAction: () => Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => const AttendanceScreen()))),
-        GlassCard(
+        SolidCard(
           onTap: () => Navigator.of(context).push(MaterialPageRoute(
               builder: (_) => const AttendanceScreen())),
           child: Row(
@@ -236,7 +236,7 @@ class DashboardScreen extends StatelessWidget {
             title: 'Домашка: осталось ${state.pendingHomework}',
             actionLabel: 'Открыть',
             onAction: () => onNavigate(3)),
-        GlassCard(
+        SolidCard(
           onTap: () => onNavigate(3),
           child: Row(
             children: [
@@ -267,7 +267,7 @@ class DashboardScreen extends StatelessWidget {
           for (final e in events)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: GlassCard(
+              child: SolidCard(
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => const EventsScreen())),
                 child: Row(
@@ -304,7 +304,7 @@ class DashboardScreen extends StatelessWidget {
           for (final g in recent)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: GlassCard(
+              child: SolidCard(
                 onTap: () => onNavigate(1),
                 child: Row(
                   children: [
@@ -334,9 +334,9 @@ class GradesScreen extends StatelessWidget {
     const terms = ['Все', 'I четверть', 'II четверть'];
     const goals = [0.0, 4.0, 4.5, 5.0];
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       children: [
-        GlassCard(
+        SolidCard(
           child: Row(
             children: [
               GlassRing(
@@ -372,7 +372,7 @@ class GradesScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        GlassCard(
+        SolidCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -420,7 +420,7 @@ class GradesScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        GlassCard(
+        SolidCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -477,7 +477,7 @@ class GradesScreen extends StatelessWidget {
           for (final g in grades)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: GlassCard(
+              child: SolidCard(
                 child: Row(
                   children: [
                     GlassGradeBadge(value: g.value),
@@ -560,7 +560,7 @@ class ScheduleScreen extends StatelessWidget {
     final days = state.schedule.keys.toList();
     final lessons = state.dayLessons;
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       children: [
         SizedBox(
           height: 44,
@@ -586,7 +586,7 @@ class ScheduleScreen extends StatelessWidget {
           for (final l in lessons)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: GlassCard(
+              child: SolidCard(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -650,9 +650,9 @@ class HomeworkScreen extends StatelessWidget {
     const filters = ['Все', 'На завтра', 'Осталось', 'Выполненные'];
     final list = state.filteredHomework;
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       children: [
-        GlassCard(
+        SolidCard(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -682,7 +682,7 @@ class HomeworkScreen extends StatelessWidget {
           for (final h in list)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: GlassCard(
+              child: SolidCard(
                 child: Row(
                   children: [
                     Checkbox(
@@ -734,9 +734,9 @@ class AttendanceScreen extends StatelessWidget {
       body: GlassBackground(
         child: SafeArea(
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             children: [
-              GlassCard(
+              SolidCard(
                 child: Row(
                   children: [
                     GlassRing(
@@ -768,7 +768,7 @@ class AttendanceScreen extends StatelessWidget {
               for (final r in list)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: GlassCard(
+                  child: SolidCard(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
                     child: Row(
@@ -830,13 +830,13 @@ class EventsScreen extends StatelessWidget {
           child: list.isEmpty
               ? const EmptyState(text: 'Событий нет')
               : ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   children: [
                     for (final e in list)
                       Padding(
                         padding:
                             const EdgeInsets.only(bottom: 10),
-                        child: GlassCard(
+                        child: SolidCard(
                           child: Row(
                             children: [
                               CircleAvatar(
@@ -897,13 +897,13 @@ class NotificationsScreen extends StatelessWidget {
           child: list.isEmpty
               ? const EmptyState(text: 'Уведомлений нет')
               : ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   children: [
                     for (final n in list)
                       Padding(
                         padding:
                             const EdgeInsets.only(bottom: 10),
-                        child: GlassCard(
+                        child: SolidCard(
                           onTap: () => state.toggleRead(n),
                           child: Row(
                             crossAxisAlignment:

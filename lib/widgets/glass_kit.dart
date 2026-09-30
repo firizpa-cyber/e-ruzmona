@@ -47,7 +47,45 @@ class GlassBackground extends StatelessWidget {
       );
 }
 
+// Плотная цветная карточка контента (без прозрачности).
+// Стекло (blur) используется только для навигации — GlassCard.
+class SolidCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final VoidCallback? onTap;
+  const SolidCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(14),
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final card = Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      color: scheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.6),
+            width: 1),
+      ),
+      child: Padding(padding: padding, child: child),
+    );
+    if (onTap == null) return card;
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: card,
+    );
+  }
+}
+
 // Стеклянная карточка: blur + полупрозрачная заливка + светлая рамка.
+// Использовать ТОЛЬКО для layout-хрома (нижняя навигация).
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -138,7 +176,7 @@ class GlassRing extends StatelessWidget {
       {super.key,
       required this.progress,
       required this.center,
-      this.size = 92});
+      this.size = 80});
 
   @override
   Widget build(BuildContext context) {
@@ -203,7 +241,7 @@ class TrendChart extends StatelessWidget {
       {super.key,
       required this.points,
       required this.labels,
-      this.height = 120});
+      this.height = 100});
 
   @override
   Widget build(BuildContext context) {
@@ -312,9 +350,13 @@ class SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: Theme.of(context).textTheme.titleMedium),
+        Expanded(
+          child: Text(title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleMedium),
+        ),
         if (actionLabel != null)
           TextButton(onPressed: onAction, child: Text(actionLabel!)),
       ],

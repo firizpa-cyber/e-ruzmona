@@ -15,9 +15,9 @@ class TeacherClassesScreen extends StatelessWidget {
     final classes = state.teacherClasses;
     final today = DateTime.now();
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       children: [
-        GlassCard(
+        SolidCard(
           child: Row(
             children: [
               CircleAvatar(
@@ -45,7 +45,7 @@ class TeacherClassesScreen extends StatelessWidget {
         for (final tc in classes)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: GlassCard(
+            child: SolidCard(
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => ClassDetailScreen(classId: tc.id))),
               child: Row(
@@ -98,9 +98,9 @@ class ClassDetailScreen extends StatelessWidget {
       body: GlassBackground(
         child: SafeArea(
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             children: [
-              GlassCard(
+              SolidCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -117,7 +117,7 @@ class ClassDetailScreen extends StatelessWidget {
               for (final s in tc.students)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: GlassCard(
+                  child: SolidCard(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 8),
                     child: Row(
@@ -256,7 +256,7 @@ class _JournalScreenState extends State<JournalScreen> {
     _classId ??= classes.first.id;
     final tc = classes.firstWhere((c) => c.id == _classId);
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       children: [
         SizedBox(
           height: 44,
@@ -280,7 +280,7 @@ class _JournalScreenState extends State<JournalScreen> {
         for (final s in tc.students)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: GlassCard(
+            child: SolidCard(
               padding: const EdgeInsets.symmetric(
                   horizontal: 12, vertical: 10),
               child: Row(
@@ -368,9 +368,9 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
       _subject = tc.subject;
     }
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       children: [
-        GlassCard(
+        SolidCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

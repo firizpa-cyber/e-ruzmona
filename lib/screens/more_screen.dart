@@ -13,11 +13,11 @@ class MoreScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       children: [
         const SectionTitle(title: 'Роль'),
         const SizedBox(height: 8),
-        GlassCard(
+        SolidCard(
           padding: EdgeInsets.zero,
           child: Column(
             children: [
@@ -61,7 +61,7 @@ class MoreScreen extends StatelessWidget {
                 for (final c in state.children)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: GlassCard(
+                    child: SolidCard(
                       onTap: () => state.selectChild(c.id),
                       child: Row(
                         children: [
@@ -100,7 +100,7 @@ class MoreScreen extends StatelessWidget {
         const SizedBox(height: 4),
         const SectionTitle(title: 'Сервис'),
         const SizedBox(height: 8),
-        GlassCard(
+        SolidCard(
           padding: EdgeInsets.zero,
           child: Column(
             children: [
@@ -135,7 +135,7 @@ class MoreScreen extends StatelessWidget {
         const SizedBox(height: 12),
         const SectionTitle(title: 'Аккаунт'),
         const SizedBox(height: 8),
-        GlassCard(
+        SolidCard(
           padding: EdgeInsets.zero,
           child: Column(
             children: [

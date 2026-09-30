@@ -2,63 +2,87 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
 
-// Шапка главного экрана: переключение между детьми в один клик.
-class ChildSwitcherHeader extends StatelessWidget {
-  const ChildSwitcherHeader({super.key});
+// Компактная шапка (одна строка ~56px): аватар + имя/класс + смена ребёнка.
+class CompactChildBar extends StatelessWidget {
+  const CompactChildBar({super.key});
 
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    final child = state.selectedChild;
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => _pickChild(context, state),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        child: Row(
           children: [
+            CircleAvatar(
+              radius: 19,
+              child: Text(child.firstName[0],
+                  style: const TextStyle(fontSize: 16)),
+            ),
+            const SizedBox(width: 10),
             Expanded(
-              child: Text(
-                'E-Ruznoma',
-                style: Theme.of(context).textTheme.titleLarge,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    child.fullName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w700),
+                  ),
+                  Text(
+                    '${child.schoolClass} • ${child.schoolName}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).hintColor),
+                  ),
+                ],
               ),
             ),
-            IconButton(
-              tooltip: 'Сменить тему',
-              onPressed: state.toggleTheme,
-              icon: Icon(
-                state.themeMode == ThemeMode.dark
-                    ? Icons.light_mode
-                    : Icons.dark_mode,
-              ),
-            ),
+            Icon(Icons.swap_horiz,
+                color: Theme.of(context).colorScheme.primary),
           ],
         ),
-        Text(
-          state.selectedChild.schoolName,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).hintColor,
+      ),
+    );
+  }
+
+  void _pickChild(BuildContext context, AppState state) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final c in state.children)
+              ListTile(
+                dense: true,
+                leading: CircleAvatar(child: Text(c.firstName[0])),
+                title: Text(c.fullName,
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                subtitle: Text(c.schoolClass,
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                trailing: c.id == state.selectedChild.id
+                    ? Icon(Icons.check,
+                        color: Theme.of(context).colorScheme.primary)
+                    : null,
+                onTap: () {
+                  state.selectChild(c.id);
+                  Navigator.of(ctx).pop();
+                },
               ),
+            const SizedBox(height: 8),
+          ],
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 64,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: state.children.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (context, i) {
-              final child = state.children[i];
-              final selected = child.id == state.selectedChild.id;
-              return ChoiceChip(
-                label: Text('${child.firstName} • ${child.schoolClass}'),
-                selected: selected,
-                avatar: CircleAvatar(
-                  child: Text(child.firstName[0]),
-                ),
-                onSelected: (_) => state.selectChild(child.id),
-              );
-            },
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

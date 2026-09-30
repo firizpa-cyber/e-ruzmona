@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    GlassCard(
+                    SolidCard(
                       child: Column(
                         children: [
                           TextField(
@@ -151,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _roleCard(UserRole role, String label, IconData icon) {
     final selected = _role == role;
-    return GlassCard(
+    return SolidCard(
       onTap: () => setState(() => _role = role),
       padding: const EdgeInsets.all(14),
       child: Column(

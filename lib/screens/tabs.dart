@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../models/models.dart';
 import '../providers/app_state.dart';
 import '../widgets/glass_kit.dart';
 
@@ -268,8 +269,8 @@ class DashboardScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: SolidCard(
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const EventsScreen())),
+                onTap: () =>
+                    showGlassSheet(context, EventSheet(event: e)),
                 child: Row(
                   children: [
                     CircleAvatar(child: Text('${e.date.day}')),
@@ -305,7 +306,16 @@ class DashboardScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: SolidCard(
-                onTap: () => onNavigate(1),
+                onTap: () => showGlassSheet(
+                  context,
+                  GradeSheet(
+                    grade: g,
+                    onOpenGrades: () {
+                      Navigator.of(context).pop();
+                      onNavigate(1);
+                    },
+                  ),
+                ),
                 child: Row(
                   children: [
                     GlassGradeBadge(value: g.value, size: 42),
@@ -478,6 +488,8 @@ class GradesScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: SolidCard(
+                onTap: () =>
+                    showGlassSheet(context, GradeSheet(grade: g)),
                 child: Row(
                   children: [
                     GlassGradeBadge(value: g.value),
@@ -837,6 +849,8 @@ class EventsScreen extends StatelessWidget {
                         padding:
                             const EdgeInsets.only(bottom: 10),
                         child: SolidCard(
+                          onTap: () => showGlassSheet(
+                              context, EventSheet(event: e)),
                           child: Row(
                             children: [
                               CircleAvatar(
@@ -992,6 +1006,108 @@ class NotificationsScreen extends StatelessWidget {
                 ),
         ),
       ),
+    );
+  }
+}
+
+// ---------- Шторка деталей оценки ----------
+class GradeSheet extends StatelessWidget {
+  final Grade grade;
+  final VoidCallback? onOpenGrades;
+  const GradeSheet({super.key, required this.grade, this.onOpenGrades});
+
+  String get _praise {
+    switch (grade.value) {
+      case 5:
+        return 'Отличная работа! Так держать!';
+      case 4:
+        return 'Хороший результат. До пятёрки один шаг!';
+      case 3:
+        return 'Есть куда расти — повторите тему вместе.';
+      default:
+        return 'Не беда. Разберите ошибки и попробуйте снова.';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GlassGradeBadge(value: grade.value, size: 72),
+        const SizedBox(height: 12),
+        Text(grade.subject,
+            style: const TextStyle(
+                fontSize: 20, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 4),
+        Text(
+          "${DateFormat('d MMM yyyy', 'ru').format(grade.date)} • ${grade.term}",
+          style: TextStyle(color: Theme.of(context).hintColor),
+        ),
+        const SizedBox(height: 8),
+        Text(_praise, textAlign: TextAlign.center),
+        if (onOpenGrades != null) ...[
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: onOpenGrades,
+              child: const Text('К оценкам'),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ---------- Шторка деталей события ----------
+class EventSheet extends StatelessWidget {
+  final SchoolEvent event;
+  const EventSheet({super.key, required this.event});
+
+  IconData _kindIcon(String kind) {
+    switch (kind) {
+      case 'meeting':
+        return Icons.groups_outlined;
+      case 'exam':
+        return Icons.quiz_outlined;
+      case 'holiday':
+        return Icons.beach_access_outlined;
+      case 'sport':
+        return Icons.sports_soccer_outlined;
+      default:
+        return Icons.event_outlined;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircleAvatar(
+            radius: 30, child: Icon(_kindIcon(event.kind), size: 30)),
+        const SizedBox(height: 12),
+        Text(event.title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+                fontSize: 19, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 4),
+        Text(
+          "${DateFormat('d MMMM, HH:mm', 'ru').format(event.date)} • ${event.place}",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Theme.of(context).hintColor),
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Понятно'),
+          ),
+        ),
+      ],
     );
   }
 }

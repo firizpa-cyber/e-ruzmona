@@ -103,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
             NavigationDestination(
                 icon: Icon(Icons.calendar_month_outlined),
                 selectedIcon: Icon(Icons.calendar_month),
-                label: 'Расписание'),
+                label: 'Уроки'),
             NavigationDestination(
                 icon: Icon(Icons.home_work_outlined),
                 selectedIcon: Icon(Icons.home_work),
@@ -147,18 +147,18 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: IndexedStack(index: _index, children: pages),
               ),
-              const SizedBox(height: 84),
+              const SizedBox(height: 76),
             ],
           ),
         ),
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
         child: GlassCard(
           padding:
-              const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+              const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           child: NavigationBar(
-            height: 62,
+            height: 54,
             backgroundColor: Colors.transparent,
             elevation: 0,
             selectedIndex: _index,

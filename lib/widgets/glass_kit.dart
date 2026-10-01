@@ -339,6 +339,36 @@ class _TrendPainter extends CustomPainter {
   bool shouldRepaint(_TrendPainter old) => old.points != points;
 }
 
+// Responsive bottom-sheet снизу вверх: закругление, ручка, адаптивная ширина.
+Future<T?> showGlassSheet<T>(BuildContext context, Widget child) {
+  final scheme = Theme.of(context).colorScheme;
+  return showModalBottomSheet<T>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    backgroundColor: scheme.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+    ),
+    builder: (ctx) => SafeArea(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          left: 20,
+          right: 20,
+          top: 4,
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: child,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 // Заголовок секции + пустое состояние (glass-стиль наследует тему).
 class SectionTitle extends StatelessWidget {
   final String title;

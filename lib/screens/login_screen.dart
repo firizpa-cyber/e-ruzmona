@@ -4,41 +4,9 @@ import '../models/models.dart';
 import '../providers/app_state.dart';
 import '../widgets/glass_kit.dart';
 
-// Вход (mock): имя + телефон + роль, либо демо-вход в один клик.
-class LoginScreen extends StatefulWidget {
+// Вход: приветственный экран + форма входа в шторке снизу.
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final _name = TextEditingController();
-  final _phone = TextEditingController();
-  UserRole _role = UserRole.parent;
-  String? _error;
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _phone.dispose();
-    super.dispose();
-  }
-
-  void _submit({bool demo = false}) {
-    final state = context.read<AppState>();
-    if (demo) {
-      state.login(
-          _role == UserRole.teacher ? 'Учитель' : 'Демо-родитель',
-          role: _role);
-      return;
-    }
-    if (_name.text.trim().isEmpty || _phone.text.trim().length < 6) {
-      setState(() => _error = 'Введите имя и телефон (минимум 6 цифр)');
-      return;
-    }
-    setState(() => _error = null);
-    state.login(_name.text, role: _role);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,93 +19,74 @@ class _LoginScreenState extends State<LoginScreen> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.school,
-                        size: 72,
-                        color: Theme.of(context).colorScheme.primary),
-                    const SizedBox(height: 16),
+                    Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Icon(Icons.school,
+                          size: 52,
+                          color:
+                              Theme.of(context).colorScheme.primary),
+                    ),
+                    const SizedBox(height: 20),
                     Text('E-Ruznoma',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleLarge),
-                    Text('Электронный дневник • ИСУО Таджикистана',
-                        textAlign: TextAlign.center,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontSize: 32)),
+                    const SizedBox(height: 6),
+                    Text('Оценки • Расписание • Домашка',
                         style: Theme.of(context)
                             .textTheme
                             .bodyMedium
                             ?.copyWith(
-                                color: Theme.of(context).hintColor)),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                            child: _roleCard(UserRole.parent, 'Родитель',
-                                Icons.family_restroom_outlined)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                            child: _roleCard(UserRole.teacher, 'Учитель',
-                                Icons.menu_book_outlined)),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    SolidCard(
-                      child: Column(
-                        children: [
-                          TextField(
-                            controller: _name,
-                            textInputAction: TextInputAction.next,
-                            decoration: const InputDecoration(
-                              labelText: 'Имя',
-                              prefixIcon: Icon(Icons.person_outline),
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                      Radius.circular(16))),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: _phone,
-                            keyboardType: TextInputType.phone,
-                            decoration: const InputDecoration(
-                              labelText: 'Телефон',
-                              hintText: '+992 90 123 45 67',
-                              prefixIcon: Icon(Icons.phone_outlined),
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                      Radius.circular(16))),
-                            ),
-                          ),
-                          if (_error != null) ...[
-                            const SizedBox(height: 8),
-                            Text(_error!,
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .error)),
-                          ],
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: _submit,
-                              child: const Text('Войти'),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton(
-                              onPressed: () => _submit(demo: true),
-                              child: const Text('Демо-вход'),
-                            ),
-                          ),
-                        ],
+                                color:
+                                    Theme.of(context).hintColor)),
+                    Text('Посещаемость • Умные уведомления',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(
+                                color:
+                                    Theme.of(context).hintColor)),
+                    const SizedBox(height: 28),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 15),
+                          shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(18)),
+                        ),
+                        onPressed: () => _openLoginSheet(context),
+                        child: const Text('Войти',
+                            style: TextStyle(fontSize: 17)),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
+                    TextButton(
+                      onPressed: () {
+                        context
+                            .read<AppState>()
+                            .login('Демо-родитель');
+                      },
+                      child: const Text('Демо-вход без регистрации'),
+                    ),
+                    const SizedBox(height: 16),
                     const Text(
                       'Демо-режим: данные вымышлены и хранятся только на устройстве.',
                       textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12),
                     ),
                   ],
                 ),
@@ -149,33 +98,135 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _roleCard(UserRole role, String label, IconData icon) {
-    final selected = _role == role;
-    return SolidCard(
-      onTap: () => setState(() => _role = role),
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        children: [
-          Icon(icon,
-              size: 30,
+  void _openLoginSheet(BuildContext context) {
+    final name = TextEditingController();
+    final phone = TextEditingController();
+    var role = UserRole.parent;
+    var error = '';
+    showGlassSheet(
+      context,
+      StatefulBuilder(
+        builder: (ctx, setS) => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Вход',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                    child: _roleTile(ctx, 'Родитель',
+                        Icons.family_restroom_outlined,
+                        role == UserRole.parent, () {
+                  setS(() => role = UserRole.parent);
+                })),
+                const SizedBox(width: 10),
+                Expanded(
+                    child: _roleTile(ctx, 'Учитель',
+                        Icons.menu_book_outlined,
+                        role == UserRole.teacher, () {
+                  setS(() => role = UserRole.teacher);
+                })),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: name,
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(
+                labelText: 'Имя',
+                prefixIcon: Icon(Icons.person_outline),
+                border: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.all(Radius.circular(16))),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: phone,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                labelText: 'Телефон',
+                hintText: '+992 90 123 45 67',
+                prefixIcon: Icon(Icons.phone_outlined),
+                border: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.all(Radius.circular(16))),
+              ),
+            ),
+            if (error.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(error,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color:
+                          Theme.of(ctx).colorScheme.error)),
+            ],
+            const SizedBox(height: 14),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+              ),
+              onPressed: () {
+                if (name.text.trim().isEmpty ||
+                    phone.text.trim().length < 6) {
+                  setS(() => error =
+                      'Введите имя и телефон (минимум 6 цифр)');
+                  return;
+                }
+                Navigator.of(ctx).pop();
+                context
+                    .read<AppState>()
+                    .login(name.text, role: role);
+              },
+              child: const Text('Продолжить'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _roleTile(BuildContext context, String label, IconData icon,
+      bool selected, VoidCallback onTap) {
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: selected
+              ? scheme.primary.withValues(alpha: 0.12)
+              : scheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
               color: selected
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).hintColor),
-          const SizedBox(height: 6),
-          Text(label,
-              style: TextStyle(
-                  fontWeight:
-                      selected ? FontWeight.w800 : FontWeight.normal)),
-          const SizedBox(height: 4),
-          Icon(
-            selected
-                ? Icons.radio_button_checked
-                : Icons.radio_button_unchecked,
-            color: selected
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).hintColor,
-          ),
-        ],
+                  ? scheme.primary
+                  : scheme.outlineVariant
+                      .withValues(alpha: 0.6),
+              width: selected ? 1.6 : 1),
+        ),
+        child: Column(
+          children: [
+            Icon(icon,
+                color: selected
+                    ? scheme.primary
+                    : Theme.of(context).hintColor),
+            const SizedBox(height: 4),
+            Text(label,
+                style: TextStyle(
+                    fontWeight: selected
+                        ? FontWeight.w800
+                        : FontWeight.normal)),
+          ],
+        ),
       ),
     );
   }
